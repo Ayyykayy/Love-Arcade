@@ -511,19 +511,14 @@
                         <h2 class="text-2xl font-bold mb-4 text-primary">A Special Message For You</h2>
                         <p class="text-white/60 mb-6">Click play to see what I have to say ❤️</p>
                         
-                        <!-- Video Placeholder - Replace the src with your video URL -->
+                        <!-- Video -->
                         <div class="relative aspect-video bg-bg-dark rounded-2xl overflow-hidden border-2 border-primary/30">
-                            <video id="finalVideo" class="w-full h-full object-cover" controls poster="">
-                                <!-- Add your video source here -->
-                                <source src="forhim.mp4" type="video/mp4">
-                                <p class="text-white/60 p-8">
-                                    Your browser doesn't support video playback. 
-                                    <br><br>
-                                    <span class="text-sm">Upload your video and replace 'YOUR_VIDEO_URL_HERE.mp4' with your video file path</span>
-                                </p>
-                            </video>
+                            <video id="finalvideo" class="w-full h-full object-cover" controls>
+    <source src="https://drive.google.com/uc?export=download&id=1gYcSWds0xmDo-C6fMUXCT7eIj6e3VQxa" type="video/mp4">
+    </video>
+
                             
-                            
+                        </div>
                     </div>
                 </div>
                 
@@ -550,15 +545,20 @@
                         
                         <!-- Content -->
                         <section class="space-y-6 font-handwritten text-2xl md:text-3xl leading-relaxed">
-                            <p>We've navigated through so many levels together, facing every challenge with a smile and a shared high score. In this digital world of pixels and lights, you are the only thing that feels truly real to me.</p>
-                            <p>Every memory we've unlocked is a treasure I hold closer than any trophy. You aren't just my Player Two; you are the reason I keep playing.</p>
-                            <p>Thank you for being the magic in my everyday. I'd choose you in every life, in every game, and at every difficulty level.</p>
+                            <p>I don't say this enough, but you matter to me in a way that's quiet and deep. Not loud, not showy. Just real.</p>
+                            <p>Sometimes I wish you could see yourself the way I see you. The way your presence can make someone feel safe, the way your words can calm a storm in someone's heart.</p>
+                            <p>You might not even realize how much of a difference you make just by being you. Just by caring a little. Just by staying.</p>
+                            <p>If life ever gets heavy for you, I hope you remember that there's someone who truly appreciates your existence. Someone who feels lucky that you're in their world.</p>
+                            <p>You're not just important on good days. You're important on your worst days too. On your quiet days. On the days you feel unsure about yourself.</p>
+                            <p>And if you ever wonder whether you're loved or valued, you are. More than you know. More than I probably say.</p>
+                            <p>I don't need big promises or perfect moments. Your heart, your effort, your presence. That's enough for me.</p>
+                            <p>Just… don't forget how special you are, okay?</p>
                         </section>
                         
                         <!-- Footer -->
                         <footer class="mt-16 pt-8 border-t border-primary/10 flex flex-col items-end">
-                            <p class="font-handwritten text-3xl text-primary">With all my love,</p>
-                            <p class="font-display font-bold text-xl mt-2">Your Forever Player One</p>
+                            <p class="font-handwritten text-3xl text-primary">someone who cares about you more than you think 💘</p>
+                            <p class="font-display font-bold text-xl mt-2">Your kitten mwuah</p>
                             <div class="mt-8 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center rotate-12 ring-4 ring-primary/20">
                                 <span class="material-icons text-white text-2xl">favorite</span>
                             </div>
@@ -1085,10 +1085,10 @@
                 // Calculate score based on distance
                 let points = 0;
                 const isMobile = window.innerWidth < 768;
-                const bullseyeRadius = isMobile ? 32 : 48; // 16px or 24px radius
-                const ring2Radius = isMobile ? 64 : 96;    // 32px or 48px radius
-                const ring3Radius = isMobile ? 96 : 144;   // 48px or 72px radius
-                const ring4Radius = isMobile ? 128 : 192;  // 64px or 96px radius
+                const bullseyeRadius = isMobile ? 32 : 48;
+                const ring2Radius = isMobile ? 64 : 96;
+                const ring3Radius = isMobile ? 96 : 144;
+                const ring4Radius = isMobile ? 128 : 192;
                 
                 if (distance <= bullseyeRadius / 2) {
                     points = 100;
@@ -1099,7 +1099,7 @@
                 } else if (distance <= ring4Radius / 2) {
                     points = 10;
                 } else {
-                    points = 0; // Missed the board
+                    points = 0;
                 }
                 
                 // Create and animate dart
@@ -1108,15 +1108,11 @@
                 dart.innerHTML = '❤️';
                 dart.style.zIndex = '100';
                 
-                // Start position (bottom center of screen)
                 const startX = window.innerWidth / 2;
                 const startY = window.innerHeight - 100;
-                
-                // End position (where clicked)
                 const endX = clickX;
                 const endY = clickY;
                 
-                // Set CSS variables for animation
                 dart.style.setProperty('--start-x', '0px');
                 dart.style.setProperty('--start-y', '0px');
                 dart.style.setProperty('--end-x', `${endX - startX}px`);
@@ -1128,17 +1124,14 @@
                 
                 document.getElementById('game3Canvas').appendChild(dart);
                 
-                // After animation, show score and stick dart
                 setTimeout(() => {
                     dart.classList.remove('dart-fly');
                     dart.style.left = endX + 'px';
                     dart.style.top = endY + 'px';
                     
-                    // Update score
                     state.score += points;
                     document.getElementById('game3Score').textContent = state.score;
                     
-                    // Show score popup
                     if (points > 0) {
                         const popup = document.createElement('div');
                         popup.className = 'absolute pointer-events-none score-pop';
@@ -1148,17 +1141,15 @@
                         popup.style.zIndex = '101';
                         
                         let color = '#fff';
-                        if (points === 100) color = '#fbbf24'; // Gold
-                        else if (points === 50) color = '#f87171'; // Red
-                        else if (points === 25) color = '#fb923c'; // Orange
+                        if (points === 100) color = '#fbbf24';
+                        else if (points === 50) color = '#f87171';
+                        else if (points === 25) color = '#fb923c';
                         
                         popup.innerHTML = `<span class="text-4xl font-black" style="color: ${color}; text-shadow: 0 0 10px ${color};">+${points}</span>`;
                         
                         document.getElementById('game3Canvas').appendChild(popup);
-                        
                         setTimeout(() => popup.remove(), 1000);
                     } else {
-                        // Miss indication
                         const popup = document.createElement('div');
                         popup.className = 'absolute pointer-events-none score-pop';
                         popup.style.left = endX + 'px';
@@ -1171,7 +1162,6 @@
                         setTimeout(() => popup.remove(), 1000);
                     }
                     
-                    // Check if game over
                     if (state.dartsLeft <= 0) {
                         setTimeout(() => {
                             if (state.score >= state.targetScore) {
@@ -1189,14 +1179,14 @@
                 found: 0,
                 total: 8,
                 memories: [
-                    { title: "First Meeting", text: "That moment when our eyes met and time stood still. I knew something special was about to begin.", img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400" },
-                    { title: "Our First Date", text: "That burger date with you was simple but became one of my favorite memories.", img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400" },
-                    { title: "Falling for You", text: "GI fell for you when you started caring for me even in small chats.", img: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400" },
-                    { title: "Missing You", text: "I started missing you in the smallest moments, and that’s when I knew you meant a lot to me.", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400" },
-                    { title: "Seeing You", text: "Every time I see you, I feel a little excitement in my heart that never really goes away.", img: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400" },
-                    { title: "Late Night Talks", text: "Talking all night and falling asleep on call with you felt comforting.", img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400" },
-                    { title: "How Much I Care", text: "I may not always say it, but I care about you more than my words can explain.", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400" },
-                    { title: "Home Together", text: "Every ordinary moment became extraordinary because it was ours.", img: "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400" }
+                    { title: "First Meeting", text: "The first time we met near Zudio felt so special. Seeing you in real life made my heart race in the best way." },
+                    { title: "Our First Date", text: "That burger we shared wasn't just food, it was our first date. Sitting there with you, talking and laughing, I didn't want that moment to end." },
+                    { title: "When I Fell for You", text: "I didn't notice it at first, but your care in our chats slowly made me fall for you." },
+                    { title: "Seeing You", text: "Every time I see you, I get this little excitement in my heart that I can't explain." },
+                    { title: "I Miss You", text: "Sometimes I miss you right after our talks end, sometimes when you sleep… and sometimes for no reason at all." },
+                    { title: "Those Nights", text: "Talking all night and falling asleep on call with you is one of my favorite memories." },
+                    { title: "You Matter", text: "I love you more than you probably realize." },
+                    { title: "Home Together", text: "Every ordinary moment became extraordinary because it was ours." }
                 ]
             },
             
@@ -1319,7 +1309,6 @@
                 document.body.appendChild(overlay);
                 
                 this.completeGame(gameNum);
-                
                 setTimeout(() => overlay.remove(), 2000);
             },
             
@@ -1340,7 +1329,36 @@
             }
         };
         
-        window.addEventListener('DOMContentLoaded', () => game.init());
+        window.addEventListener('DOMContentLoaded', () => {
+            game.init();
+            
+            // Handle video loading
+            const video = document.getElementById('finalVideo');
+            const placeholder = document.getElementById('videoPlaceholder');
+            
+            if (video && placeholder) {
+                video.addEventListener('loadeddata', () => {
+                    placeholder.style.opacity = '0';
+                    setTimeout(() => {
+                        placeholder.style.display = 'none';
+                    }, 300);
+                });
+                
+                video.addEventListener('error', () => {
+                    placeholder.innerHTML = `
+                        <div class="text-center p-8">
+                            <div class="w-24 h-24 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                                <span class="material-icons text-red-500 text-5xl">error</span>
+                            </div>
+                            <p class="text-white/80 font-semibold mb-2">Video Not Found</p>
+                            <p class="text-white/40 text-sm max-w-md">Make sure 'forhim.mp4' is in the same folder as this HTML file</p>
+                        </div>
+                    `;
+                });
+                
+                video.load();
+            }
+        });
     </script>
 </body>
 </html>
