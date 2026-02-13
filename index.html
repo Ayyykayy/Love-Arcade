@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Arcade - Play for Love</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Dancing+Script:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#ee2b34',
+                        'bg-dark': '#221011',
+                        'bg-surface': '#2d1617',
+                        'accent-pink': '#ff4d56',
+                        'nebula-purple': '#2d1b4e',
+                    },
+                    fontFamily: {
+                        'display': ['Plus Jakarta Sans', 'sans-serif'],
+                        'handwritten': ['Dancing Script', 'cursive']
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .screen {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .heart-particle {
+            position: absolute;
+            pointer-events: none;
+            animation: float 10s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(238, 43, 52, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(238, 43, 52, 0.8); }
+        }
+        
+        @keyframes bounce-in {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .neon-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        
+        .paper-grain {
+            background-color: #fff9f9;
+            position: relative;
+        }
+        
+        .paper-grain::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+        
+        .fade-in {
+            animation: slide-up 0.6s ease-out;
+        }
+        
+        @keyframes star-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+        
+        .star-pulse {
+            animation: star-pulse 3s infinite ease-in-out;
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes dart-fly {
+            0% { 
+                transform: translate(var(--start-x), var(--start-y)) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(var(--end-x), var(--end-y)) scale(0.6) rotate(720deg);
+                opacity: 1;
+            }
+        }
+        
+        .dart-fly {
+            animation: dart-fly 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        .crosshair {
+            pointer-events: none;
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(238, 43, 52, 0.6);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease;
+        }
+        
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(238, 43, 52, 0.6);
+        }
+        
+        .crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .crosshair::after {
+            width: 20px;
+            height: 2px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .dart-board {
+            cursor: crosshair;
+        }
+        
+        @keyframes score-pop {
+            0% { 
+                transform: scale(0) translateY(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.5) translateY(-20px);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) translateY(-40px);
+                opacity: 0;
+            }
+        }
+        
+        .score-pop {
+            animation: score-pop 1s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-bg-dark text-white">
+    <!-- Background Container -->
+    <div class="fixed inset-0 bg-gradient-to-br from-bg-dark via-bg-surface to-bg-dark">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="startScreen" class="screen active">
+        <div class="absolute inset-0 flex flex-col items-center justify-center px-4">
+            <div class="mb-8 relative group">
+                <div class="absolute inset-0 bg-primary/40 blur-3xl rounded-full"></div>
+                <div class="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-primary/50 shadow-2xl relative overflow-hidden neon-glow">
+                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary to-accent-pink">
+                        <span class="material-icons text-white text-6xl">favorite</span>
+                    </div>
+                </div>
+            </div>
+            
+            <h1 class="font-handwritten text-7xl md:text-9xl text-white mb-4 text-shadow-lg">Love Arcade</h1>
+            <p class="text-lg md:text-xl text-white/70 max-w-xl text-center mb-12">
+                Play till the end if you want to know how much you <span class="text-primary font-semibold">mean to me.</span>
+            </p>
+            
+            <button onclick="game.showScreen('menuScreen')" class="group relative bg-primary hover:bg-accent-pink text-white font-bold py-5 px-12 rounded-full text-xl md:text-2xl flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95 shadow-xl neon-glow">
+                <span class="material-icons">play_arrow</span>
+                START PLAYING
+            </button>
+            
+            <div class="mt-16 flex items-center gap-6 text-white/40 uppercase tracking-widest text-xs font-medium">
+                <span>4 Love Games</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+                <span>Unlock Memories</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+                <span>Final Surprise</span>
+            </div>
+        </div>
+        
+        <!-- Music Toggle -->
+        <button id="musicToggle" onclick="game.toggleMusic()" class="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
+            <span class="material-icons text-white/70">music_note</span>
+        </button>
+    </div>
+
+    <!-- MENU SCREEN -->
+    <div id="menuScreen" class="screen">
+        <div class="absolute inset-0 overflow-auto py-12 px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 fade-in">
+                    <div class="flex items-center justify-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                            <span class="material-icons text-white">videogame_asset</span>
+                        </div>
+                        <h1 class="text-4xl md:text-6xl font-black italic uppercase">Love<span class="text-primary">Arcade</span></h1>
+                    </div>
+                    <p class="text-white/60 text-lg">Complete each game to unlock the next. Collect hearts along the way! ❤️</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto" id="gameCards">
+                    <!-- Game cards will be inserted here -->
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mt-12 max-w-md mx-auto bg-white/5 rounded-full p-4 border border-white/10">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-primary uppercase">Total Progress</span>
+                        <span id="totalScore" class="text-xs font-black">0 / 4 Complete</span>
+                    </div>
+                    <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-primary transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME 1: HEART COLLECTOR -->
+    <div id="game1Screen" class="screen">
+        <div class="absolute inset-0 flex flex-col">
+            <!-- HUD -->
+            <div class="p-4 md:p-6 flex justify-between items-start z-50">
+                <div class="flex gap-4">
+                    <div class="bg-bg-dark/60 backdrop-blur-xl border border-primary/20 rounded-full px-4 py-2 flex items-center gap-2">
+                        <span class="material-icons text-primary text-sm">favorite</span>
+                        <div class="flex flex-col leading-none">
+                            <span class="text-xs text-primary/60 font-bold">SCORE</span>
+                            <span id="game1Score" class="text-xl font-black">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-primary/20 backdrop-blur-xl border border-primary/40 rounded-full px-3 py-2">
+                        <span id="game1Combo" class="text-primary font-black text-sm">x1</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-bg-dark/60 backdrop-blur-xl border border-primary/20 rounded-full px-4 py-2">
+                        <span id="game1Timer" class="font-black text-lg">30</span>
+                    </div>
+                    <button onclick="game.showScreen('menuScreen')" class="bg-white/5 hover:bg-white/10 backdrop-blur-md text-white/80 p-2 rounded-full transition-all border border-white/10">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Game Canvas -->
+            <div id="game1Canvas" class="flex-1 relative overflow-hidden"></div>
+            
+            <!-- Basket -->
+            <div id="basket" class="absolute bottom-16 left-1/2 -translate-x-1/2 z-30" style="touch-action: none;">
+                <div class="relative">
+                    <div class="w-32 h-16 md:w-40 md:h-20 bg-gradient-to-b from-primary to-accent-pink rounded-b-xl rounded-t-lg flex items-center justify-center border-4 border-white/20 shadow-2xl neon-glow cursor-grab active:cursor-grabbing">
+                        <div class="flex gap-1 items-end mb-2">
+                            <span class="material-icons text-white text-xl">favorite</span>
+                            <span class="material-icons text-white text-2xl">favorite</span>
+                            <span class="material-icons text-white text-lg">favorite</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Floating Message -->
+            <div id="game1Message" class="absolute bottom-40 left-1/2 -translate-x-1/2 z-20 pointer-events-none opacity-0 transition-opacity">
+                <div class="flex flex-col items-center">
+                    <span class="text-primary font-black text-3xl italic drop-shadow-lg">COMBO!</span>
+                    <span class="text-white/40 text-xs font-bold uppercase tracking-widest mt-1">Keep Going!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME 2: MEMORY QUIZ -->
+    <div id="game2Screen" class="screen">
+        <div class="absolute inset-0 flex flex-col">
+            <!-- Header -->
+            <div class="p-6 flex justify-between items-center border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary p-2 rounded-full">
+                        <span class="material-icons text-white">psychology</span>
+                    </div>
+                    <div>
+                        <h2 class="font-handwritten text-2xl text-primary">Memory Quiz</h2>
+                        <p class="text-xs text-white/40 uppercase tracking-widest">How Well Do You Know?</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-white/5 px-4 py-2 rounded-full border border-white/10">
+                        <span id="game2Timer" class="font-bold">30</span>
+                    </div>
+                    <button onclick="game.showScreen('menuScreen')" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quiz Content -->
+            <div class="flex-1 flex items-center justify-center p-6">
+                <div class="w-full max-w-3xl">
+                    <!-- Progress -->
+                    <div class="mb-8">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-handwritten text-xl text-primary">Question Time</span>
+                            <span id="game2Progress" class="text-sm font-bold text-white/60">1/5</span>
+                        </div>
+                        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div id="game2ProgressBar" class="h-full bg-primary transition-all duration-500" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Question Card -->
+                    <div id="game2Question" class="bg-bg-surface/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-6">
+                        <div class="text-center mb-6">
+                            <div class="inline-block bg-primary/20 text-primary text-xs font-bold px-3 py-1 rounded-full mb-4">MEMORY LANE</div>
+                            <h3 id="game2QuestionText" class="text-2xl font-bold"></h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Answers -->
+                    <div id="game2Answers" class="space-y-4">
+                        <!-- Answer buttons will be inserted here -->
+                    </div>
+                    
+                    <!-- Feedback Message -->
+                    <div id="game2Feedback" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] opacity-0 pointer-events-none transition-opacity">
+                        <div class="bg-bg-dark/95 backdrop-blur-xl border-4 rounded-3xl p-12 text-center">
+                            <div id="game2FeedbackIcon" class="text-8xl mb-4">✓</div>
+                            <h3 id="game2FeedbackText" class="text-4xl font-black mb-2"></h3>
+                            <p id="game2FeedbackSubtext" class="text-white/60 text-lg"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME 3: LOVE DART - IMPROVED -->
+    <div id="game3Screen" class="screen">
+        <div class="absolute inset-0 flex flex-col">
+            <!-- HUD -->
+            <div class="p-4 md:p-6 flex justify-between items-start z-50">
+                <div class="flex gap-4">
+                    <div class="bg-bg-dark/60 backdrop-blur-xl border border-primary/20 rounded-full px-4 py-2 flex items-center gap-2">
+                        <span class="material-icons text-primary text-sm">stars</span>
+                        <div class="flex flex-col leading-none">
+                            <span class="text-xs text-primary/60 font-bold">SCORE</span>
+                            <span id="game3Score" class="text-xl font-black">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-bg-dark/60 backdrop-blur-xl border border-primary/20 rounded-full px-4 py-2">
+                        <span class="text-sm font-bold"><span id="game3Darts">10</span> Darts</span>
+                    </div>
+                </div>
+                <button onclick="game.showScreen('menuScreen')" class="bg-white/5 hover:bg-white/10 backdrop-blur-md text-white/80 p-2 rounded-full transition-all border border-white/10">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <!-- Game Canvas -->
+            <div id="game3Canvas" class="flex-1 relative overflow-hidden flex items-center justify-center dart-board">
+                <!-- Crosshair -->
+                <div id="crosshair" class="crosshair" style="display: none;"></div>
+                
+                <!-- Target Board -->
+                <div id="dartBoard" class="relative">
+                    <div class="w-64 h-64 md:w-96 md:h-96 rounded-full border-8 border-white/20 shadow-2xl relative overflow-hidden bg-bg-surface">
+                        <!-- Ring 4 - Outermost (10 points) -->
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 md:w-96 md:h-96 bg-primary/10 rounded-full flex items-center justify-center border-4 border-white/10">
+                            <span class="text-white/60 font-bold text-xs absolute top-4">10</span>
+                        </div>
+                        <!-- Ring 3 (25 points) -->
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 md:w-72 md:h-72 bg-primary/30 rounded-full flex items-center justify-center border-4 border-white/20">
+                            <span class="text-white font-bold text-xs absolute top-4">25</span>
+                        </div>
+                        <!-- Ring 2 (50 points) -->
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 bg-accent-pink/60 rounded-full flex items-center justify-center border-4 border-white/30">
+                            <span class="text-white font-bold text-sm absolute top-3">50</span>
+                        </div>
+                        <!-- Bullseye (100 points) -->
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 bg-primary rounded-full flex items-center justify-center border-4 border-white/40 shadow-lg">
+                            <span class="text-white font-black text-lg">100</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Target Hint -->
+                    <div class="absolute -bottom-20 left-1/2 -translate-x-1/2 text-center w-full">
+                        <p class="text-white/60 text-sm">Click anywhere on the target to aim and throw!</p>
+                        <p class="text-primary/60 text-xs mt-1">Closer to center = More points</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME 4: STAR MEMORIES -->
+    <div id="game4Screen" class="screen">
+        <div class="absolute inset-0 bg-gradient-to-br from-nebula-purple to-bg-dark">
+            <!-- Stars Background -->
+            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(white 1px, transparent 0); background-size: 50px 50px;"></div>
+            
+            <!-- Header -->
+            <div class="absolute top-8 left-8 z-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                        <span class="material-icons text-white">auto_awesome</span>
+                    </div>
+                    <div>
+                        <h2 class="text-sm uppercase tracking-widest text-white/70">Star Memories</h2>
+                        <p class="text-xl font-bold"><span id="game4Progress">0</span> / 8 Found</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instruction -->
+            <div class="absolute top-8 right-8 z-50 bg-white/5 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10">
+                <p class="text-xs text-white/60">Find the real memories among the stars</p>
+            </div>
+            
+            <!-- Star Canvas -->
+            <div id="game4Canvas" class="absolute inset-0 flex items-center justify-center">
+                <!-- Stars will be positioned here -->
+            </div>
+            
+            <!-- Memory Card -->
+            <div id="memoryCard" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-80 max-w-[90vw] bg-bg-surface/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-primary/30 opacity-0 pointer-events-none transition-all">
+                <button onclick="game.closeMemory()" class="absolute top-4 right-4 text-white/40 hover:text-white">
+                    <span class="material-icons">close</span>
+                </button>
+                <div class="text-center">
+                    <h3 id="memoryTitle" class="text-xl font-bold mb-3"></h3>
+                    <p id="memoryText" class="text-white/60 text-sm italic leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FINAL SCREEN -->
+    <div id="finalScreen" class="screen">
+        <div class="absolute inset-0 overflow-auto py-12 px-4">
+            <!-- Floating Hearts Background -->
+            <div class="fixed inset-0 pointer-events-none overflow-hidden">
+                <span class="material-icons heart-particle text-primary/20 text-2xl" style="left: 10%; animation-delay: 0s;">favorite</span>
+                <span class="material-icons heart-particle text-primary/10 text-lg" style="left: 25%; animation-delay: 2s;">favorite</span>
+                <span class="material-icons heart-particle text-primary/30 text-3xl" style="left: 45%; animation-delay: 1s;">favorite</span>
+                <span class="material-icons heart-particle text-primary/15 text-xl" style="left: 65%; animation-delay: 3s;">favorite</span>
+                <span class="material-icons heart-particle text-primary/25 text-2xl" style="left: 85%; animation-delay: 1.5s;">favorite</span>
+            </div>
+            
+            <div class="relative z-10 flex flex-col items-center max-w-3xl mx-auto">
+                <!-- Header -->
+                <div class="mb-12 flex items-center gap-4 bg-primary/10 border border-primary/20 px-6 py-2 rounded-full backdrop-blur-md">
+                    <span class="material-icons text-primary">videogame_asset</span>
+                    <span class="uppercase tracking-widest text-xs font-bold text-primary">Level Complete: Forever Yours</span>
+                    <span class="material-icons text-primary">favorite</span>
+                </div>
+                
+                <!-- Video Message Section -->
+                <div class="w-full mb-12">
+                    <div class="relative bg-bg-surface/80 backdrop-blur-xl border border-primary/30 rounded-3xl overflow-hidden p-8 text-center">
+                        <h2 class="text-2xl font-bold mb-4 text-primary">A Special Message For You</h2>
+                        <p class="text-white/60 mb-6">Click play to see what I have to say ❤️</p>
+                        
+                        <!-- Video Placeholder - Replace the src with your video URL -->
+                        <div class="relative aspect-video bg-bg-dark rounded-2xl overflow-hidden border-2 border-primary/30">
+                            <video id="finalVideo" class="w-full h-full object-cover" controls poster="">
+                                <!-- Add your video source here -->
+                                <source src="forhim.mp4" type="video/mp4">
+                                <p class="text-white/60 p-8">
+                                    Your browser doesn't support video playback. 
+                                    <br><br>
+                                    <span class="text-sm">Upload your video and replace 'YOUR_VIDEO_URL_HERE.mp4' with your video file path</span>
+                                </p>
+                            </video>
+                            
+                            
+                    </div>
+                </div>
+                
+                <!-- Love Letter -->
+                <div class="relative w-full transform hover:scale-[1.01] transition-transform duration-500">
+                    <div class="absolute inset-0 bg-primary/20 blur-2xl rounded-xl"></div>
+                    
+                    <article class="relative paper-grain text-gray-800 p-8 md:p-16 rounded-xl shadow-2xl border border-white/50">
+                        <!-- Corners -->
+                        <div class="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-primary/30 rounded-tl-xl"></div>
+                        <div class="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-primary/30 rounded-br-xl"></div>
+                        
+                        <!-- Header -->
+                        <header class="flex justify-between items-start mb-12 flex-wrap gap-4">
+                            <div>
+                                <p class="text-xs uppercase tracking-widest font-semibold text-primary/60">Memorandum of Love</p>
+                                <h2 class="text-3xl font-bold">To My One & Only</h2>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-gray-600">February 14, 2026</p>
+                                <p class="text-xs text-gray-400">The Arcade Plaza</p>
+                            </div>
+                        </header>
+                        
+                        <!-- Content -->
+                        <section class="space-y-6 font-handwritten text-2xl md:text-3xl leading-relaxed">
+                            <p>We've navigated through so many levels together, facing every challenge with a smile and a shared high score. In this digital world of pixels and lights, you are the only thing that feels truly real to me.</p>
+                            <p>Every memory we've unlocked is a treasure I hold closer than any trophy. You aren't just my Player Two; you are the reason I keep playing.</p>
+                            <p>Thank you for being the magic in my everyday. I'd choose you in every life, in every game, and at every difficulty level.</p>
+                        </section>
+                        
+                        <!-- Footer -->
+                        <footer class="mt-16 pt-8 border-t border-primary/10 flex flex-col items-end">
+                            <p class="font-handwritten text-3xl text-primary">With all my love,</p>
+                            <p class="font-display font-bold text-xl mt-2">Your Forever Player One</p>
+                            <div class="mt-8 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center rotate-12 ring-4 ring-primary/20">
+                                <span class="material-icons text-white text-2xl">favorite</span>
+                            </div>
+                        </footer>
+                    </article>
+                </div>
+                
+                <!-- Actions -->
+                <div class="mt-16 flex flex-col items-center gap-6">
+                    <button onclick="game.resetProgress()" class="group relative px-8 py-4 bg-primary hover:bg-accent-pink text-white font-bold rounded-full transition-all shadow-xl flex items-center gap-3 active:scale-95">
+                        <span class="material-icons">replay</span>
+                        <span class="uppercase tracking-widest text-sm">Play Again</span>
+                    </button>
+                    
+                    <button onclick="game.showScreen('startScreen')" class="text-white/60 hover:text-white text-sm uppercase tracking-widest">
+                        Return to Start
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State Manager
+        const game = {
+            currentScreen: 'startScreen',
+            musicPlaying: false,
+            progress: {
+                game1: false,
+                game2: false,
+                game3: false,
+                game4: false
+            },
+            
+            init() {
+                this.loadProgress();
+                this.updateMenu();
+                this.initBasketDrag();
+            },
+            
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+                this.currentScreen = screenId;
+                
+                if (screenId === 'game1Screen') this.startGame1();
+                if (screenId === 'game2Screen') this.startGame2();
+                if (screenId === 'game3Screen') this.startGame3();
+                if (screenId === 'game4Screen') this.startGame4();
+            },
+            
+            toggleMusic() {
+                this.musicPlaying = !this.musicPlaying;
+                const btn = document.getElementById('musicToggle');
+                btn.innerHTML = `<span class="material-icons text-white/70">${this.musicPlaying ? 'music_off' : 'music_note'}</span>`;
+            },
+            
+            saveProgress() {
+                localStorage.setItem('loveArcadeProgress', JSON.stringify(this.progress));
+            },
+            
+            loadProgress() {
+                const saved = localStorage.getItem('loveArcadeProgress');
+                if (saved) {
+                    this.progress = JSON.parse(saved);
+                }
+            },
+            
+            resetProgress() {
+                this.progress = { game1: false, game2: false, game3: false, game4: false };
+                this.saveProgress();
+                this.showScreen('menuScreen');
+                this.updateMenu();
+            },
+            
+            completeGame(gameNum) {
+                this.progress[`game${gameNum}`] = true;
+                this.saveProgress();
+                
+                setTimeout(() => {
+                    if (gameNum === 4) {
+                        this.showScreen('finalScreen');
+                    } else {
+                        this.showScreen('menuScreen');
+                        this.updateMenu();
+                    }
+                }, 2000);
+            },
+            
+            updateMenu() {
+                const games = [
+                    {
+                        title: 'Heart Collector',
+                        desc: 'Catch falling hearts before time runs out',
+                        points: '350 PTS',
+                        image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800&auto=format&fit=crop',
+                        locked: false
+                    },
+                    {
+                        title: 'Memory Quiz',
+                        desc: 'Answer questions about our love story',
+                        points: '120 PTS',
+                        image: 'https://images.unsplash.com/photo-1518398046578-8cca57782e17?w=800&auto=format&fit=crop',
+                        locked: !this.progress.game1
+                    },
+                    {
+                        title: 'Love Dart',
+                        desc: 'Throw hearts at the target to score points',
+                        points: '180 PTS',
+                        image: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&auto=format&fit=crop',
+                        locked: !this.progress.game2
+                    },
+                    {
+                        title: 'Star Memories',
+                        desc: 'Discover our constellation of moments',
+                        points: '200 PTS',
+                        image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800&auto=format&fit=crop',
+                        locked: !this.progress.game3
+                    }
+                ];
+                
+                const container = document.getElementById('gameCards');
+                container.innerHTML = games.map((g, i) => `
+                    <div class="relative group ${g.locked ? 'opacity-60' : ''}">
+                        <div class="bg-bg-surface/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 ${!g.locked ? 'hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20' : ''}">
+                            <div class="h-48 relative overflow-hidden ${g.locked ? 'grayscale' : ''}">
+                                <img src="${g.image}" alt="${g.title}" class="w-full h-full object-cover ${!g.locked ? 'group-hover:scale-110' : ''} transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-bg-dark to-transparent"></div>
+                                ${g.locked ? `
+                                    <div class="absolute inset-0 bg-bg-dark/80 backdrop-blur-sm flex flex-col items-center justify-center">
+                                        <div class="w-12 h-12 rounded-full bg-bg-dark/80 flex items-center justify-center border border-primary/30 mb-2">
+                                            <span class="material-icons text-primary">lock</span>
+                                        </div>
+                                        <span class="text-xs font-black uppercase tracking-widest text-primary">Locked</span>
+                                    </div>
+                                ` : `
+                                    <div class="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Available</div>
+                                `}
+                            </div>
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 class="text-xl font-extrabold uppercase italic">${g.title}</h3>
+                                        <p class="text-white/50 text-sm mt-1">${g.desc}</p>
+                                    </div>
+                                    <div class="bg-white/10 px-3 py-1 rounded-full">
+                                        <span class="text-xs font-bold">${g.points}</span>
+                                    </div>
+                                </div>
+                                ${!g.locked ? `
+                                    <button onclick="game.showScreen('game${i + 1}Screen')" class="w-full py-3 bg-primary text-white font-black uppercase italic rounded-full hover:bg-accent-pink transition-all flex items-center justify-center gap-2">
+                                        ${this.progress[`game${i + 1}`] ? 'Play Again' : 'Play Now'} <span class="material-icons">play_arrow</span>
+                                    </button>
+                                ` : `
+                                    <div class="w-full py-3 bg-white/5 text-white/40 font-black uppercase italic rounded-full border border-white/10 text-center cursor-not-allowed">
+                                        Complete Previous Game
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                const completed = Object.values(this.progress).filter(Boolean).length;
+                document.getElementById('totalScore').textContent = `${completed} / 4 Complete`;
+                document.getElementById('progressBar').style.width = `${(completed / 4) * 100}%`;
+            },
+            
+            // GAME 1: HEART COLLECTOR
+            game1State: {
+                score: 0,
+                combo: 1,
+                hearts: [],
+                timer: 30,
+                interval: null,
+                spawnInterval: null,
+                targetScore: 500,
+                lastCatch: 0
+            },
+            
+            startGame1() {
+                const state = this.game1State;
+                state.score = 0;
+                state.combo = 1;
+                state.hearts = [];
+                state.timer = 30;
+                state.lastCatch = 0;
+                
+                document.getElementById('game1Score').textContent = '0';
+                document.getElementById('game1Combo').textContent = 'x1';
+                document.getElementById('game1Timer').textContent = '30';
+                
+                const canvas = document.getElementById('game1Canvas');
+                canvas.innerHTML = '';
+                
+                clearInterval(state.interval);
+                clearInterval(state.spawnInterval);
+                
+                state.interval = setInterval(() => {
+                    state.timer--;
+                    document.getElementById('game1Timer').textContent = state.timer;
+                    
+                    if (Date.now() - state.lastCatch > 3000 && state.combo > 1) {
+                        state.combo = 1;
+                        document.getElementById('game1Combo').textContent = 'x1';
+                    }
+                    
+                    if (state.timer <= 0) {
+                        clearInterval(state.interval);
+                        clearInterval(state.spawnInterval);
+                        if (state.score >= state.targetScore) {
+                            this.showWin('game1');
+                        } else {
+                            this.showLoss('game1');
+                        }
+                    }
+                }, 1000);
+                
+                state.spawnInterval = setInterval(() => this.spawnHeart(), 800);
+            },
+            
+            spawnHeart() {
+                const canvas = document.getElementById('game1Canvas');
+                const heart = document.createElement('div');
+                const x = Math.random() * (canvas.offsetWidth - 40);
+                
+                heart.className = 'absolute top-0 text-4xl';
+                heart.innerHTML = '❤️';
+                heart.style.left = x + 'px';
+                heart.style.filter = 'drop-shadow(0 0 8px rgba(255, 182, 193, 0.6))';
+                
+                canvas.appendChild(heart);
+                
+                let y = 0;
+                const fallSpeed = 2 + Math.random() * 2;
+                
+                const fall = setInterval(() => {
+                    y += fallSpeed;
+                    heart.style.top = y + 'px';
+                    
+                    if (this.checkCollision(heart, document.getElementById('basket'))) {
+                        clearInterval(fall);
+                        this.catchHeart(heart);
+                    }
+                    
+                    if (y > canvas.offsetHeight) {
+                        clearInterval(fall);
+                        heart.remove();
+                        const state = this.game1State;
+                        state.combo = 1;
+                        document.getElementById('game1Combo').textContent = 'x1';
+                    }
+                }, 20);
+            },
+            
+            catchHeart(heart) {
+                const state = this.game1State;
+                const points = 10 * state.combo;
+                state.score += points;
+                state.lastCatch = Date.now();
+                
+                if (state.combo < 5) {
+                    state.combo += 0.5;
+                }
+                
+                document.getElementById('game1Score').textContent = state.score;
+                document.getElementById('game1Combo').textContent = `x${state.combo.toFixed(1)}`;
+                
+                heart.style.animation = 'bounce-in 0.3s ease-out';
+                setTimeout(() => heart.remove(), 300);
+                
+                if (state.combo >= 3) {
+                    const msg = document.getElementById('game1Message');
+                    msg.style.opacity = '1';
+                    setTimeout(() => msg.style.opacity = '0', 1000);
+                }
+            },
+            
+            checkCollision(heart, basket) {
+                const heartRect = heart.getBoundingClientRect();
+                const basketRect = basket.getBoundingClientRect();
+                
+                return !(heartRect.right < basketRect.left || 
+                        heartRect.left > basketRect.right || 
+                        heartRect.bottom < basketRect.top || 
+                        heartRect.top > basketRect.bottom);
+            },
+            
+            initBasketDrag() {
+                const basket = document.getElementById('basket');
+                let isDragging = false;
+                let currentX = 0;
+                
+                const handleMove = (e) => {
+                    if (!isDragging) return;
+                    
+                    const x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                    const canvas = document.getElementById('game1Canvas');
+                    const maxX = canvas.offsetWidth - basket.offsetWidth;
+                    
+                    currentX = Math.max(0, Math.min(x - basket.offsetWidth / 2, maxX));
+                    basket.style.left = currentX + 'px';
+                    basket.style.transform = 'translateX(0)';
+                };
+                
+                basket.addEventListener('mousedown', () => isDragging = true);
+                basket.addEventListener('touchstart', () => isDragging = true);
+                
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('touchmove', handleMove);
+                
+                document.addEventListener('mouseup', () => isDragging = false);
+                document.addEventListener('touchend', () => isDragging = false);
+            },
+            
+            // GAME 2: MEMORY QUIZ
+            game2State: {
+                currentQuestion: 0,
+                correct: 0,
+                timer: 30,
+                interval: null,
+                answering: false,
+                questions: [
+                    {
+                        question: "Where did we share our very first kiss?",
+                        answers: ["While Eating burger", "While we were on the bus", "In Delusion"],
+                        correct: 2
+                    },
+                    {
+                        question: "Who usually says 'I miss you' first?",
+                        answers: ["Me", "You", "Both at same time"],
+                        correct: 2
+                    },
+                    {
+                        question: "What's my favorite thing about you?",
+                        answers: ["Your smile that lights up my world", "The way you laugh at my jokes", "How you always know what I need"],
+                        correct: 0
+                    },
+                    {
+                        question: "When do I feel closest to you?",
+                        answers: ["When we travel together", "When we talk honestly", "When we sit quietly together"],
+                        correct: 1
+                    },
+                    {
+                        question: "What are you to me?",
+                        answers: ["Boyfriend", "Husband", "Mera baccha"],
+                        correct: 2
+                    }
+                ]
+            },
+            
+            startGame2() {
+                const state = this.game2State;
+                state.currentQuestion = 0;
+                state.correct = 0;
+                state.timer = 30;
+                state.answering = false;
+                
+                clearInterval(state.interval);
+                
+                this.showQuestion();
+                
+                state.interval = setInterval(() => {
+                    if (!state.answering) {
+                        state.timer--;
+                        document.getElementById('game2Timer').textContent = state.timer;
+                        
+                        if (state.timer <= 0) {
+                            this.answerQuestion(-1);
+                        }
+                    }
+                }, 1000);
+            },
+            
+            showQuestion() {
+                const state = this.game2State;
+                const q = state.questions[state.currentQuestion];
+                
+                document.getElementById('game2Progress').textContent = `${state.currentQuestion + 1}/5`;
+                document.getElementById('game2ProgressBar').style.width = `${((state.currentQuestion + 1) / 5) * 100}%`;
+                document.getElementById('game2QuestionText').textContent = q.question;
+                
+                const answersDiv = document.getElementById('game2Answers');
+                answersDiv.innerHTML = q.answers.map((a, i) => `
+                    <button onclick="game.answerQuestion(${i})" class="group w-full h-16 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/50 transition-all text-lg font-bold hover:scale-[1.02] active:scale-[0.98]">
+                        ${a}
+                    </button>
+                `).join('');
+            },
+            
+            answerQuestion(index) {
+                if (this.game2State.answering) return;
+                
+                const state = this.game2State;
+                const q = state.questions[state.currentQuestion];
+                state.answering = true;
+                
+                const isCorrect = index === q.correct;
+                
+                if (isCorrect) {
+                    state.correct++;
+                }
+                
+                this.showFeedback(isCorrect);
+                
+                setTimeout(() => {
+                    state.currentQuestion++;
+                    state.answering = false;
+                    
+                    if (state.currentQuestion >= state.questions.length) {
+                        clearInterval(state.interval);
+                        if (state.correct >= 3) {
+                            this.showWin('game2');
+                        } else {
+                            this.showLoss('game2');
+                        }
+                    } else {
+                        state.timer = 30;
+                        this.showQuestion();
+                    }
+                }, 2000);
+            },
+            
+            showFeedback(isCorrect) {
+                const feedback = document.getElementById('game2Feedback');
+                const icon = document.getElementById('game2FeedbackIcon');
+                const text = document.getElementById('game2FeedbackText');
+                const subtext = document.getElementById('game2FeedbackSubtext');
+                
+                if (isCorrect) {
+                    icon.textContent = '✓';
+                    icon.style.color = '#4ade80';
+                    text.textContent = 'Correct!';
+                    text.style.color = '#4ade80';
+                    subtext.textContent = 'You know me so well ❤️';
+                } else {
+                    icon.textContent = '✗';
+                    icon.style.color = '#f87171';
+                    text.textContent = 'Not Quite!';
+                    text.style.color = '#f87171';
+                    subtext.textContent = 'But I still love you!';
+                }
+                
+                feedback.style.opacity = '1';
+                feedback.classList.add(isCorrect ? 'fade-in' : 'shake');
+                
+                setTimeout(() => {
+                    feedback.style.opacity = '0';
+                    feedback.classList.remove('fade-in', 'shake');
+                }, 2000);
+            },
+            
+            // GAME 3: LOVE DART - IMPROVED WITH PROPER AIMING
+            game3State: {
+                score: 0,
+                dartsLeft: 10,
+                targetScore: 300,
+                boardCenter: { x: 0, y: 0 },
+                boardRadius: 0
+            },
+            
+            startGame3() {
+                const state = this.game3State;
+                state.score = 0;
+                state.dartsLeft = 10;
+                
+                document.getElementById('game3Score').textContent = '0';
+                document.getElementById('game3Darts').textContent = '10';
+                
+                // Calculate board center and radius
+                const board = document.getElementById('dartBoard').querySelector('.w-64');
+                const rect = board.getBoundingClientRect();
+                state.boardCenter = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+                state.boardRadius = rect.width / 2;
+                
+                // Setup click handlers
+                const canvas = document.getElementById('game3Canvas');
+                const crosshair = document.getElementById('crosshair');
+                
+                // Show crosshair on mouse move
+                canvas.onmousemove = (e) => {
+                    crosshair.style.display = 'block';
+                    crosshair.style.left = e.clientX + 'px';
+                    crosshair.style.top = e.clientY + 'px';
+                };
+                
+                canvas.onmouseleave = () => {
+                    crosshair.style.display = 'none';
+                };
+                
+                // Throw dart on click
+                canvas.onclick = (e) => {
+                    if (state.dartsLeft > 0) {
+                        this.throwDartAt(e.clientX, e.clientY);
+                    }
+                };
+                
+                // Touch support
+                canvas.ontouchstart = (e) => {
+                    e.preventDefault();
+                    if (state.dartsLeft > 0) {
+                        const touch = e.touches[0];
+                        this.throwDartAt(touch.clientX, touch.clientY);
+                    }
+                };
+            },
+            
+            throwDartAt(clickX, clickY) {
+                const state = this.game3State;
+                
+                if (state.dartsLeft <= 0) return;
+                
+                state.dartsLeft--;
+                document.getElementById('game3Darts').textContent = state.dartsLeft;
+                
+                // Calculate distance from center
+                const dx = clickX - state.boardCenter.x;
+                const dy = clickY - state.boardCenter.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Calculate score based on distance
+                let points = 0;
+                const isMobile = window.innerWidth < 768;
+                const bullseyeRadius = isMobile ? 32 : 48; // 16px or 24px radius
+                const ring2Radius = isMobile ? 64 : 96;    // 32px or 48px radius
+                const ring3Radius = isMobile ? 96 : 144;   // 48px or 72px radius
+                const ring4Radius = isMobile ? 128 : 192;  // 64px or 96px radius
+                
+                if (distance <= bullseyeRadius / 2) {
+                    points = 100;
+                } else if (distance <= ring2Radius / 2) {
+                    points = 50;
+                } else if (distance <= ring3Radius / 2) {
+                    points = 25;
+                } else if (distance <= ring4Radius / 2) {
+                    points = 10;
+                } else {
+                    points = 0; // Missed the board
+                }
+                
+                // Create and animate dart
+                const dart = document.createElement('div');
+                dart.className = 'absolute text-3xl pointer-events-none dart-fly';
+                dart.innerHTML = '❤️';
+                dart.style.zIndex = '100';
+                
+                // Start position (bottom center of screen)
+                const startX = window.innerWidth / 2;
+                const startY = window.innerHeight - 100;
+                
+                // End position (where clicked)
+                const endX = clickX;
+                const endY = clickY;
+                
+                // Set CSS variables for animation
+                dart.style.setProperty('--start-x', '0px');
+                dart.style.setProperty('--start-y', '0px');
+                dart.style.setProperty('--end-x', `${endX - startX}px`);
+                dart.style.setProperty('--end-y', `${endY - startY}px`);
+                
+                dart.style.left = startX + 'px';
+                dart.style.top = startY + 'px';
+                dart.style.transform = 'translate(-50%, -50%)';
+                
+                document.getElementById('game3Canvas').appendChild(dart);
+                
+                // After animation, show score and stick dart
+                setTimeout(() => {
+                    dart.classList.remove('dart-fly');
+                    dart.style.left = endX + 'px';
+                    dart.style.top = endY + 'px';
+                    
+                    // Update score
+                    state.score += points;
+                    document.getElementById('game3Score').textContent = state.score;
+                    
+                    // Show score popup
+                    if (points > 0) {
+                        const popup = document.createElement('div');
+                        popup.className = 'absolute pointer-events-none score-pop';
+                        popup.style.left = endX + 'px';
+                        popup.style.top = endY + 'px';
+                        popup.style.transform = 'translate(-50%, -50%)';
+                        popup.style.zIndex = '101';
+                        
+                        let color = '#fff';
+                        if (points === 100) color = '#fbbf24'; // Gold
+                        else if (points === 50) color = '#f87171'; // Red
+                        else if (points === 25) color = '#fb923c'; // Orange
+                        
+                        popup.innerHTML = `<span class="text-4xl font-black" style="color: ${color}; text-shadow: 0 0 10px ${color};">+${points}</span>`;
+                        
+                        document.getElementById('game3Canvas').appendChild(popup);
+                        
+                        setTimeout(() => popup.remove(), 1000);
+                    } else {
+                        // Miss indication
+                        const popup = document.createElement('div');
+                        popup.className = 'absolute pointer-events-none score-pop';
+                        popup.style.left = endX + 'px';
+                        popup.style.top = endY + 'px';
+                        popup.style.transform = 'translate(-50%, -50%)';
+                        popup.style.zIndex = '101';
+                        popup.innerHTML = `<span class="text-3xl font-black text-white/40">MISS!</span>`;
+                        
+                        document.getElementById('game3Canvas').appendChild(popup);
+                        setTimeout(() => popup.remove(), 1000);
+                    }
+                    
+                    // Check if game over
+                    if (state.dartsLeft <= 0) {
+                        setTimeout(() => {
+                            if (state.score >= state.targetScore) {
+                                this.showWin('game3');
+                            } else {
+                                this.showLoss('game3');
+                            }
+                        }, 1500);
+                    }
+                }, 600);
+            },
+            
+            // GAME 4: STAR MEMORIES
+            game4State: {
+                found: 0,
+                total: 8,
+                memories: [
+                    { title: "First Meeting", text: "That moment when our eyes met and time stood still. I knew something special was about to begin.", img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400" },
+                    { title: "Our First Date", text: "That burger date with you was simple but became one of my favorite memories.", img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400" },
+                    { title: "Falling for You", text: "GI fell for you when you started caring for me even in small chats.", img: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400" },
+                    { title: "Missing You", text: "I started missing you in the smallest moments, and that’s when I knew you meant a lot to me.", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400" },
+                    { title: "Seeing You", text: "Every time I see you, I feel a little excitement in my heart that never really goes away.", img: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400" },
+                    { title: "Late Night Talks", text: "Talking all night and falling asleep on call with you felt comforting.", img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400" },
+                    { title: "How Much I Care", text: "I may not always say it, but I care about you more than my words can explain.", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400" },
+                    { title: "Home Together", text: "Every ordinary moment became extraordinary because it was ours.", img: "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400" }
+                ]
+            },
+            
+            startGame4() {
+                const state = this.game4State;
+                state.found = 0;
+                document.getElementById('game4Progress').textContent = '0';
+                
+                const canvas = document.getElementById('game4Canvas');
+                canvas.innerHTML = '';
+                
+                const realPositions = [
+                    { top: '15%', left: '12%' },
+                    { top: '25%', right: '18%' },
+                    { bottom: '30%', left: '25%' },
+                    { top: '45%', right: '30%' },
+                    { bottom: '20%', right: '20%' },
+                    { top: '55%', left: '15%' },
+                    { top: '65%', right: '12%' },
+                    { bottom: '15%', left: '40%' }
+                ];
+                
+                const distractorPositions = [
+                    { top: '10%', left: '40%' },
+                    { top: '20%', left: '60%' },
+                    { top: '35%', left: '35%' },
+                    { bottom: '35%', right: '40%' },
+                    { top: '70%', left: '50%' },
+                    { bottom: '25%', left: '55%' },
+                    { top: '40%', left: '70%' }
+                ];
+                
+                state.memories.forEach((memory, i) => {
+                    const star = this.createStar(realPositions[i], memory.title, true, i);
+                    canvas.appendChild(star);
+                });
+                
+                distractorPositions.forEach((pos, i) => {
+                    const star = this.createStar(pos, '', false, i);
+                    canvas.appendChild(star);
+                });
+            },
+            
+            createStar(position, title, isReal, index) {
+                const star = document.createElement('button');
+                star.className = 'absolute group transition-all duration-500 hover:scale-125';
+                star.style.cssText = Object.entries(position).map(([k, v]) => `${k}: ${v}`).join('; ');
+                
+                const size = isReal ? 'w-4 h-4' : 'w-3 h-3';
+                const label = isReal ? `
+                    <span class="absolute top-8 left-1/2 -translate-x-1/2 text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity text-white/60 whitespace-nowrap">${title}</span>
+                ` : '';
+                
+                star.innerHTML = `
+                    <div class="relative flex items-center justify-center">
+                        <div class="absolute w-16 h-16 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/40 transition-all"></div>
+                        <div class="${size} bg-white rounded-full shadow-[0_0_15px_#fff] ${isReal ? 'star-pulse' : ''}"></div>
+                    </div>
+                    ${label}
+                `;
+                
+                if (isReal) {
+                    star.onclick = () => this.showMemory(index);
+                } else {
+                    star.onclick = () => {
+                        star.classList.add('shake');
+                        setTimeout(() => star.classList.remove('shake'), 500);
+                    };
+                }
+                
+                return star;
+            },
+            
+            showMemory(index) {
+                const memory = this.game4State.memories[index];
+                const card = document.getElementById('memoryCard');
+                
+                document.getElementById('memoryTitle').textContent = memory.title;
+                document.getElementById('memoryText').textContent = memory.text;
+                
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+                
+                this.game4State.found++;
+                document.getElementById('game4Progress').textContent = this.game4State.found;
+                
+                const stars = Array.from(document.getElementById('game4Canvas').children).filter(s => 
+                    s.querySelector('.star-pulse')
+                );
+                if (stars[index]) {
+                    stars[index].style.opacity = '0.3';
+                    stars[index].style.pointerEvents = 'none';
+                }
+                
+                if (this.game4State.found >= this.game4State.total) {
+                    setTimeout(() => {
+                        this.completeGame(4);
+                    }, 2000);
+                }
+            },
+            
+            closeMemory() {
+                const card = document.getElementById('memoryCard');
+                card.style.opacity = '0';
+                card.style.pointerEvents = 'none';
+            },
+            
+            showWin(gameId) {
+                const gameNum = parseInt(gameId.replace('game', ''));
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-bg-dark/90 backdrop-blur-md flex items-center justify-center z-[100]';
+                overlay.innerHTML = `
+                    <div class="text-center fade-in">
+                        <div class="text-6xl mb-6 animate-bounce">🎉</div>
+                        <h2 class="text-5xl font-black mb-4 text-primary">LEVEL COMPLETE!</h2>
+                        <p class="text-xl text-white/70 mb-8">You unlocked the next challenge!</p>
+                        <div class="text-3xl">❤️</div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                
+                this.completeGame(gameNum);
+                
+                setTimeout(() => overlay.remove(), 2000);
+            },
+            
+            showLoss(gameId) {
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-bg-dark/90 backdrop-blur-md flex items-center justify-center z-[100]';
+                overlay.innerHTML = `
+                    <div class="text-center fade-in">
+                        <div class="text-6xl mb-6">💔</div>
+                        <h2 class="text-4xl font-black mb-4">Try Again!</h2>
+                        <p class="text-xl text-white/70 mb-8">Love is patient - keep practicing!</p>
+                        <button onclick="this.parentElement.parentElement.remove(); game.showScreen('menuScreen')" class="bg-primary hover:bg-accent-pink text-white font-bold py-3 px-8 rounded-full">
+                            Back to Menu
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            }
+        };
+        
+        window.addEventListener('DOMContentLoaded', () => game.init());
+    </script>
+</body>
+</html>
